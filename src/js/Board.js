@@ -1,7 +1,15 @@
+import GameState from './GameState';
+
 export default class Board {
   constructor(fields) {
     this.fields = fields;
     this.random = null;
+    this.hit = false;
+    this.interval = null;
+    this.gameState = new GameState();
+
+    this.onClick = this.onClick.bind(this);
+
     this.fields.forEach((item) => {
       item.addEventListener('click', this.onClick);
     });
@@ -27,13 +35,51 @@ export default class Board {
   }
 
   moveGoblin() {
-    this.deleteActiveClass();
-    this.addActiveClass();
+    this.interval = setInterval(() => {
+      if (!this.hit) {
+        this.miss();
+      }
+      if (this.hit) {
+        this.hit = false;
+      }
+      this.deleteActiveClass();
+      this.addActiveClass();
+    }, 1000);
   }
 
-  // onClick(e) {
-  //   if (e.target.className === 'field field_active') {
+  clearsInterval() {
+    this.hit = true;
+    clearInterval(this.interval);
+  }
 
-  //   }
-  // }
+  showScore() {
+    document.querySelector('.score_number').textContent = this.gameState.score;
+  }
+
+  showMiss() {
+    if (this.gameState.miss === 5) {
+      this.gameOver();
+    }
+    document.querySelector('.miss_number').textContent = this.gameState.miss;
+  }
+
+  onClick(e) {
+    if (e.target.className === 'field field_active') {
+      this.gameState.score += 1;
+      this.showScore();
+      this.clearsInterval();
+      this.deleteActiveClass();
+      this.moveGoblin();
+    }
+  }
+
+  miss() {
+    this.gameState.miss += 1;
+    this.showMiss();
+  }
+
+  gameOver() {
+    this.clearsInterval();
+    alert('Вы проиграли');
+  }
 }
